@@ -19,10 +19,12 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ToggleButton;
 
 import com.crashlytics.android.Crashlytics;
@@ -302,6 +304,69 @@ public class SettingsActivity extends Activity {
             public void onClick(DialogInterface dialog, int which) {
                 stopService();
                 PrefsController.instance.setToken(input.getText().toString().trim());
+                dialog.cancel();
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+        builder.show();
+    }
+
+    public void setProxyButton(View view) {
+
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Please fill HTTP Proxy Host and Port:");
+
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+
+        final EditText ProxyHost = new EditText(this);
+        ProxyHost.setInputType(InputType.TYPE_CLASS_TEXT);
+        ProxyHost.setSingleLine(false);
+        ProxyHost.setLines(1);
+        ProxyHost.setText(PrefsController.instance.getProxyHost());
+        ProxyHost.setHint("Proxy Host");
+        layout.addView(ProxyHost);
+
+        final EditText ProxyPort = new EditText(this);
+        ProxyPort.setInputType(InputType.TYPE_CLASS_TEXT);
+        ProxyPort.setSingleLine(false);
+        ProxyPort.setLines(1);
+        ProxyPort.setText(PrefsController.instance.getProxyPort());
+        ProxyPort.setHint("Proxy Port");
+        layout.addView(ProxyPort);
+
+        final EditText ProxyUser = new EditText(this);
+        ProxyUser.setInputType(InputType.TYPE_CLASS_TEXT);
+        ProxyUser.setSingleLine(false);
+        ProxyUser.setLines(1);
+        ProxyUser.setText(PrefsController.instance.getProxyUser());
+        ProxyUser.setHint("Proxy User");
+        layout.addView(ProxyUser);
+
+        final EditText ProxyPass = new EditText(this);
+        ProxyPass.setInputType(InputType.TYPE_CLASS_TEXT);
+        ProxyPass.setSingleLine(false);
+        ProxyPass.setLines(1);
+        ProxyPass.setText(PrefsController.instance.getProxyPass());
+        ProxyPass.setHint("Proxy User");
+        layout.addView(ProxyPass);
+
+        builder.setView(layout);
+
+        builder.setPositiveButton("Save", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                stopService();
+                PrefsController.instance.setProxyHost(ProxyHost.getText().toString().trim());
+                PrefsController.instance.setProxyPort(ProxyPort.getText().toString().trim());
+                PrefsController.instance.setProxyUser(ProxyUser.getText().toString().trim());
+                PrefsController.instance.setProxyPass(ProxyPass.getText().toString().trim());
                 dialog.cancel();
             }
         });

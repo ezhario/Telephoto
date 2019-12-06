@@ -4,14 +4,14 @@ import android.app.AlertDialog;
 import android.location.Location;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.view.WindowManager;
 
 import com.crashlytics.android.answers.Answers;
 import com.crashlytics.android.answers.CustomEvent;
 import com.google.common.base.Strings;
-import com.pengrad.telegrambot.GetUpdatesListener;
 import com.pengrad.telegrambot.TelegramBot;
-import com.pengrad.telegrambot.TelegramBotAdapter;
+import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.model.request.Keyboard;
@@ -39,10 +39,21 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
+import okhttp3.Authenticator;
+import okhttp3.Credentials;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import okhttp3.Route;
 
 public class TelegramService implements ISenderService {
 
@@ -52,6 +63,9 @@ public class TelegramService implements ISenderService {
     private TelegramBot bot = null;
     private CommandHelper commandHelper;
     private volatile boolean isRunning = false;
+    private GetMe request;
+
+    public Throwable ex2;
 
     public TelegramService(IStartService startService) {
         this.startService = startService;
@@ -61,12 +75,90 @@ public class TelegramService implements ISenderService {
         this.botService = botService;
         this.commandHelper = new CommandHelper(botService);
         final Keyboard mainKeyboard = commandHelper.getMainKeyboard();
-        bot = TelegramBotAdapter.build(PrefsController.instance.getToken());
+        String token = PrefsController.instance.getToken();
+
+        boolean isProxy = false;
+
+        boolean isProxyAuth = false;
+
+        if (PrefsController.instance.hasProxyHost() && PrefsController.instance.hasProxyPort()) {
+            Log.d("myProxyTag", "Proxy is set");
+            isProxy = true;
+        }
+
+        if (isProxy) {
+
+            String ProxyHost = PrefsController.instance.getProxyHost();
+            int ProxyPort = Integer.parseInt(PrefsController.instance.getProxyPort());
+
+            Log.d("myProxyTag", "Proxy used: " + ProxyHost + ":" + ProxyPort);
+
+            if (PrefsController.instance.hasProxyUser() && PrefsController.instance.hasProxyPass()) {
+                Log.d("myProxyTag", "Proxy Auth is set");
+                isProxyAuth = true;
+            }
+
+//            TODO:
+//
+//            type client = null;
+//            if () {client = …) else {client=}
+//                if (client != null)
+//            …(client)
+
+            if (isProxyAuth) {
+
+                final String ProxyUser = PrefsController.instance.getProxyUser();
+                final String ProxyPass = PrefsController.instance.getProxyPass();
+
+                Authenticator proxyAuthenticator = new Authenticator() {
+                    @Override public Request authenticate(Route route, Response response) throws IOException {
+                        String credential = Credentials.basic(ProxyUser, ProxyPass);
+                        return response.request().newBuilder()
+                                .header("Proxy-Authorization", credential)
+                                .build();
+                    }
+                };
+
+                OkHttpClient client = new OkHttpClient.Builder()
+                        .connectTimeout(60, TimeUnit.SECONDS)
+                        .writeTimeout(60, TimeUnit.SECONDS)
+                        .readTimeout(60, TimeUnit.SECONDS)
+                        .proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(ProxyHost, ProxyPort)))
+                        .proxyAuthenticator(proxyAuthenticator)
+                        .build();
+
+                bot = new TelegramBot.Builder(token).okHttpClient(client).build();
+            } else {
+                OkHttpClient client = new OkHttpClient.Builder()
+                        .connectTimeout(60, TimeUnit.SECONDS)
+                        .writeTimeout(60, TimeUnit.SECONDS)
+                        .readTimeout(60, TimeUnit.SECONDS)
+                        .proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(ProxyHost, ProxyPort)))
+                        .build();
+
+                bot = new TelegramBot.Builder(token).okHttpClient(client).build();
+
+            }
+
+
+
+        } else {
+            Log.d("myProxyTag", "Proxy is not set");
+            OkHttpClient client = new OkHttpClient.Builder()
+                    .connectTimeout(5, TimeUnit.SECONDS)
+                    .writeTimeout(5, TimeUnit.SECONDS)
+                    .readTimeout(5, TimeUnit.SECONDS)
+                    .build();
+
+
+            bot = new TelegramBot.Builder(token).okHttpClient(client).build();
+        }
         es.submit(new Runnable() {
             @Override
             public void run() {
                 try {
-                    GetMeResponse getMeResponse = bot.execute(new GetMe());
+                    request = new GetMe();
+                    GetMeResponse getMeResponse = bot.execute(request);
                     isRunning = getMeResponse.isOk();
                     if (isRunning) {
                         L.i("----- BOT IS OK -----");
@@ -74,7 +166,7 @@ public class TelegramService implements ISenderService {
 
                         commandHelper.init();
                         GetUpdates getUpdates = new GetUpdates().timeout(5);
-                        bot.setGetUpdatetsListener(new GetUpdatesListener() {
+                        bot.setUpdatesListener(new UpdatesListener() {
                             @Override
                             public int process(List<Update> updates) {
                                 try {
@@ -112,10 +204,10 @@ public class TelegramService implements ISenderService {
                                             Answers.getInstance().logCustom(new CustomEvent("Message").putCustomAttribute("text", "" + textMessage));
                                         }
                                     }
-                                    return GetUpdatesListener.CONFIRMED_UPDATES_ALL;
+                                    return UpdatesListener.CONFIRMED_UPDATES_ALL;
                                 } catch (Throwable ex) {
                                     L.e(ex);
-                                    return GetUpdatesListener.CONFIRMED_UPDATES_ALL;
+                                    return UpdatesListener.CONFIRMED_UPDATES_ALL;
                                 }
                             }
                         }, getUpdates);
@@ -126,6 +218,7 @@ public class TelegramService implements ISenderService {
                         startService.onStartFailed();
                     }
                 } catch (Throwable ex) {
+                    ex2 = ex;
                     botService.stopSelf();
 
                     Handler handler = new Handler(Looper.getMainLooper());
@@ -133,7 +226,7 @@ public class TelegramService implements ISenderService {
                         @Override
                         public void run() {
                             AlertDialog alertDialog = new AlertDialog.Builder(botService)
-                                    .setTitle("Error!")
+                                    .setTitle("Error! =(")
                                     .setMessage(R.string.error_internet_trouble)
                                     .create();
 

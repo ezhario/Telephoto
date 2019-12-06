@@ -24,6 +24,21 @@ public class PrefsController {
     private static final String LAST_MD_DETECTED = "LAST_MD_DETECTED";
     private static final String IS_PRO = "IS_PRO";
 
+
+
+
+
+    private static final String PROXY_HOST = "PROXY_HOST";
+    private static final String PROXY_PORT = "PROXY_PORT";
+
+    private static final String PROXY_USER = "PROXY_USER";
+    private static final String PROXY_PASS = "PROXY_PASS";
+
+
+
+
+
+
     private volatile SharedPreferences preferences;
     private volatile Prefs prefs = null;
 
@@ -35,6 +50,94 @@ public class PrefsController {
 
     private PrefsController() {
     }
+
+
+
+    public boolean hasProxyHost() {
+        return !Strings.isNullOrEmpty(getProxyHost());
+    }
+
+    public String getProxyHost() {
+        return preferences.getString(PROXY_HOST, "");
+    }
+
+    public void setProxyHost(String newProxyHost) {
+        newProxyHost = newProxyHost.replaceAll("\\s+", "");
+        preferences.edit().putString(PROXY_HOST, newProxyHost).apply();
+    }
+
+    public boolean hasProxyPort() {
+        return !Strings.isNullOrEmpty(getProxyPort());
+    }
+
+    public String getProxyPort() {
+        return preferences.getString(PROXY_PORT, "");
+    }
+
+    public void setProxyPort(String newProxyPort) {
+        newProxyPort = newProxyPort.replaceAll("\\s+", "");
+        preferences.edit().putString(PROXY_PORT, newProxyPort).apply();
+    }
+
+
+
+
+
+
+
+
+
+    public boolean hasProxyUser() {
+        return !Strings.isNullOrEmpty(getProxyUser());
+    }
+
+    public String getProxyUser() {
+        return preferences.getString(PROXY_USER, "");
+    }
+
+    public void setProxyUser(String newProxyUser) {
+        newProxyUser = newProxyUser.replaceAll("\\s+", "");
+        preferences.edit().putString(PROXY_USER, newProxyUser).apply();
+    }
+
+    public boolean hasProxyPass() {
+        return !Strings.isNullOrEmpty(getProxyPass());
+    }
+
+    public String getProxyPass() {
+        return preferences.getString(PROXY_PASS, "");
+    }
+
+    public void setProxyPass(String newProxyPass) {
+        newProxyPass = newProxyPass.replaceAll("\\s+", "");
+        preferences.edit().putString(PROXY_PASS, newProxyPass).apply();
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     public boolean hasToken() {
         return !Strings.isNullOrEmpty(getToken());

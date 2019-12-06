@@ -78,3 +78,4 @@
 #-keepclassmembers class * {
 #    @com.squareup.picasso.** *;
 #}
+-ignorewarnings

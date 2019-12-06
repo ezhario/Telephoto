@@ -127,4 +127,5 @@
     <string name="bot_creation_server_error">Ошибка сервера! Попробуйте еще раз или создайте бота вручную.</string>
     <string name="create_new_bot">Создать бота</string>
     <string name="set_bot_token">Ввести токен</string>
+    <string name="set_proxy_host">Использовать HTTP прокси</string>
 </resources>

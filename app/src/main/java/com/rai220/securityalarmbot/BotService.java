@@ -14,7 +14,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.PowerManager;
-import android.speech.tts.TextToSpeech;
+//import android.speech.tts.TextToSpeech;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.widget.Toast;
@@ -75,7 +75,7 @@ public class BotService extends Service implements MotionDetectorController.Moti
     private boolean isSensorStarted = false;
 
     public Handler handler = null;
-    public TextToSpeech tts = null;
+//    public TextToSpeech tts = null;
     public volatile boolean ttsInitialized = false;
 
     private volatile PowerManager.WakeLock wakeLock = null;
@@ -99,16 +99,16 @@ public class BotService extends Service implements MotionDetectorController.Moti
         FabricUtils.initFabric(this);
         handler = new Handler(Looper.getMainLooper());
 
-        try {
-            tts = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
-                @Override
-                public void onInit(int i) {
-                    ttsInitialized = true;
-                }
-            });
-        } catch (Throwable ex) {
-            L.e("Error initializing TTS " + ex.toString());
-        }
+//        try {
+//            tts = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
+//                @Override
+//                public void onInit(int i) {
+//                    ttsInitialized = true;
+//                }
+//            });
+//        } catch (Throwable ex) {
+//            L.e("Error initializing TTS " + ex.toString());
+//        }
 
 
         // Runs service in IDDQD mode :)
@@ -235,8 +235,8 @@ public class BotService extends Service implements MotionDetectorController.Moti
         try {
             hiddenCamera2.destroy();
 //            hiddenCamera.destroy();
-            tts.stop();
-            tts.shutdown();
+//            tts.stop();
+//            tts.shutdown();
             if (telegramService != null) {
                 telegramService.stop();
                 telegramService.getBot().removeGetUpdatesListener();

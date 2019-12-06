@@ -127,4 +127,5 @@
     <string name="bot_creation_server_error">Sorry, server error! Please try again or create bot by yourself.</string>
     <string name="create_new_bot">Create new bot</string>
     <string name="set_bot_token">Set bot token</string>
+    <string name="set_proxy_host">Set HTTP Proxy</string>
 </resources>

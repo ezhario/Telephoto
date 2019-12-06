@@ -57,7 +57,7 @@ public class TtsCommand extends AbstractCommand {
                     // TODO: 09.04.2017 mainK
 //                    telegramService.sendMessage(chatId, botService.getString(R.string.operation_cancel), mainKeyBoard);
                 } else if (botService.ttsInitialized) {
-                    botService.tts.speak(textToSpeech, TextToSpeech.QUEUE_ADD, null);
+//                    botService.tts.speak(textToSpeech, TextToSpeech.QUEUE_ADD, null);
                     telegramService.sendMessage(chatId, "I sad '" + textToSpeech + "' using TTS.");
                     // TODO: 09.04.2017 mainK
 //                    telegramService.sendMessage(chatId, "I sad '" + textToSpeech + "' using TTS.", mainKeyBoard);
